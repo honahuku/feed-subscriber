@@ -19,12 +19,6 @@ feeds:
       - "https://www.0x0c.me/feed.xml"
       - "https://radar.cloudflare.com/zero-wire/feed"
       - "https://radar.cloudflare.com/zero-wire/feed?tag=rce"
-  - name: "ほなふくのテスト用サーバー - はてなブログ"
-    webhook: hona-test-server
-    interval: 1m
-    description_limit: 10
-    urls:
-      - "https://honahuku-test.hatenablog.jp/rss"
   - name: "#p-24 - 日記"
     webhook: p-24-diary
     interval: 15m
