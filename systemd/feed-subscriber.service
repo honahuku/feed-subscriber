@@ -1,0 +1,23 @@
+[Unit]
+Description=RSS to Discord subscriber
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+DynamicUser=yes
+ConfigurationDirectory=feed-subscriber
+ConfigurationDirectoryMode=0750
+StateDirectory=feed-subscriber
+StateDirectoryMode=0750
+LoadCredential=secrets.yaml:/etc/feed-subscriber/secrets.yaml
+ExecStart=/usr/local/bin/feed-subscriber -config /etc/feed-subscriber/config.yaml -secrets %d/secrets.yaml -state %S/feed-subscriber/state.json
+Restart=on-failure
+RestartSec=5s
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+
+[Install]
+WantedBy=multi-user.target
