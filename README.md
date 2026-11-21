@@ -16,6 +16,8 @@ go run ./cmd/feed-subscriber
 
 起動時に各フィードを確認しその後は設定間隔で巡回します。初回は記事を投稿せず最新記事を記録します。最後に確認した記事を`state.json`に記録し、再起動後の重複投稿を防ぎます。
 
+`feed-subscriber -version`で実行中バイナリのバージョンを確認できます。バージョンはUTCの年月日時分秒とミリ秒で、pre-commit時に自動更新されます。同じ時刻または時計が戻った場合は、直前のバージョンより1ミリ秒進めます。
+
 ## systemd
 
 Linuxでsystemdサービスとして起動する場合は、バイナリと設定を配置して有効化します。
@@ -31,4 +33,3 @@ sudo systemctl enable --now feed-subscriber.service
 ```
 
 サービスは動的ユーザーで動作し、設定と秘密情報をsystemdの資格情報機能で読み込み、状態は`/var/lib/feed-subscriber/`に保存します。
-
