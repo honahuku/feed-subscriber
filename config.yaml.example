@@ -1,0 +1,14 @@
+feeds:
+  - name: engineering
+    webhook: announcements
+    interval: 30m
+    description_limit: 10
+    urls:
+      - https://example.com/feed.xml
+
+  - name: personal
+    webhook: journal
+    interval: 10m
+    description_limit: 10
+    urls:
+      - https://example.net/rss
