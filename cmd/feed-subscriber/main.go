@@ -13,7 +13,7 @@ import (
 
 func main() {
 	configPath := flag.String("config", "config.yaml", "path to the feed configuration")
-	secretsPath := flag.String("secrets", "secrets.yaml", "path to webhook URL mappings")
+	secretsPath := flag.String("secrets", "secrets.yaml", "path to secret values")
 	statePath := flag.String("state", "state.json", "path to persistent feed state")
 	flag.Parse()
 
@@ -24,6 +24,11 @@ func main() {
 	state, err := app.LoadState(*statePath)
 	if err != nil {
 		log.Fatal(err)
+	}
+	if config.MigrateState(state) {
+		if err := state.Save(*statePath); err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
