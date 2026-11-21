@@ -6,8 +6,6 @@ After=network-online.target
 [Service]
 Type=simple
 DynamicUser=yes
-ConfigurationDirectory=feed-subscriber
-ConfigurationDirectoryMode=0750
 StateDirectory=feed-subscriber
 StateDirectoryMode=0750
 LoadCredential=secrets.yaml:/etc/feed-subscriber/secrets.yaml

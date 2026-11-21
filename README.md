@@ -20,16 +20,35 @@ go run ./cmd/feed-subscriber
 
 ## systemd
 
-Linuxでsystemdサービスとして起動する場合は、バイナリと設定を配置して有効化します。
+Linuxでsystemdサービスとして起動する場合は、repo内のunitを登録し、repo内の設定とGit管理外の秘密情報をsystemdの資格情報として読み込みます。repoはsystemd起動時に利用できる永続ファイルシステム上に置きます。
+
+systemdの登録とdrop-inは`/etc/systemd/system/`に残りますが、アプリ設定と秘密情報のコピーは作りません。
 
 ```sh
 go build -o feed-subscriber ./cmd/feed-subscriber
 sudo install -Dm755 feed-subscriber /usr/local/bin/feed-subscriber
-sudo install -Dm600 config.yaml /etc/feed-subscriber/config.yaml
-sudo install -Dm600 secrets.yaml /etc/feed-subscriber/secrets.yaml
-sudo install -Dm644 systemd/feed-subscriber.service /etc/systemd/system/feed-subscriber.service
+repo_dir="$(git rev-parse --show-toplevel)"
+# unitのコピーを作らず、repo内のunitをsystemdへ登録する
+sudo systemctl link "$repo_dir/systemd/feed-subscriber.service"
+sudo systemctl edit feed-subscriber.service
+```
+
+`systemctl edit`で次のdrop-inを設定し、`/path/to/feed-subscriber`をrepoの絶対パスに置き換えます。空の`LoadCredential=`でunit本体の既定参照を消してから、repo内の設定と秘密情報を指定します。
+
+```ini
+[Service]
+ConfigurationDirectory=
+LoadCredential=
+LoadCredential=config.yaml:/path/to/feed-subscriber/config.yaml
+LoadCredential=secrets.yaml:/path/to/feed-subscriber/secrets.yaml
+```
+
+空の`ConfigurationDirectory=`はunit本体の`/etc/feed-subscriber/`作成を無効にします。`secrets.yaml`はGitで追跡せず、読み取り権限を所有者だけにします。すでにunitのコピーが登録されている場合は、そのコピーを取り除いてからrepoのunitをリンクします。unitの登録とdrop-inを設定した後、unitを再読み込みしてサービスを有効化します。
+
+```sh
+chmod 600 secrets.yaml
 sudo systemctl daemon-reload
 sudo systemctl enable --now feed-subscriber.service
 ```
 
-サービスは動的ユーザーで動作し、設定と秘密情報をsystemdの資格情報機能で読み込み、状態は`/var/lib/feed-subscriber/`に保存します。
+サービスは動的ユーザーで動作し、systemdの資格情報機能を通じて設定と秘密情報を読み込みます。サービスプロセスにはrepoへのアクセス権を与えず、状態は`/var/lib/feed-subscriber/`に保存します。`main`をcheckoutしたrepoでmergeが完了すると、`post-merge` hookがこのunitの登録を確認し、バイナリを再ビルドして配置した後にサービスを再起動します。自動反映を有効にするには、repoのルートで一度`lefthook install`を実行してください。hook導入前のmergeにはhookがないため、自動反映の対象になりません。
