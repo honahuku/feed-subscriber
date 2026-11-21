@@ -68,16 +68,16 @@ func (application *Application) poll(ctx context.Context, feed FeedConfig) error
 	for urlIndex, feedURL := range feed.URLs {
 		request, err := http.NewRequestWithContext(ctx, http.MethodGet, feedURL, nil)
 		if err != nil {
-			log.Printf("feed %q: invalid RSS request", feed.Name)
+			logRSSRequestFailure(feed, urlIndex, "invalid RSS request")
 			continue
 		}
 		response, err := application.client.Do(request)
 		if err != nil {
-			log.Printf("feed %q: RSS request failed", feed.Name)
+			logRSSRequestFailure(feed, urlIndex, "RSS request failed")
 			continue
 		}
 		if response.StatusCode < 200 || response.StatusCode >= 300 {
-			log.Printf("feed %q: RSS request returned HTTP %s", feed.Name, response.Status)
+			logRSSRequestFailure(feed, urlIndex, fmt.Sprintf("RSS request returned HTTP %s", response.Status))
 			if err := response.Body.Close(); err != nil {
 				return fmt.Errorf("close RSS response: %w", err)
 			}
@@ -88,7 +88,7 @@ func (application *Application) poll(ctx context.Context, feed FeedConfig) error
 			return fmt.Errorf("close RSS response: %w", closeErr)
 		}
 		if err != nil {
-			log.Printf("feed %q: unable to parse RSS", feed.Name)
+			logRSSRequestFailure(feed, urlIndex, "unable to parse RSS")
 			continue
 		}
 		items := make([]Item, 0, len(parsed.Items))
@@ -126,6 +126,16 @@ func (application *Application) poll(ctx context.Context, feed FeedConfig) error
 		}
 	}
 	return nil
+}
+
+func logRSSRequestFailure(feed FeedConfig, urlIndex int, message string) {
+	log.Printf(
+		"feed %q (webhook %q), RSS source %q: %s",
+		feed.Name,
+		feed.Webhook,
+		feed.StateURLs[urlIndex],
+		message,
+	)
 }
 
 func (application *Application) saveCheckpoint(key, itemID string) error {
