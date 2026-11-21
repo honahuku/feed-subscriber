@@ -1,47 +1,25 @@
 # feed-subscriber
 
-A small RSS-to-Discord webhook subscriber.
+RSSフィードの新着記事をDiscordにMarkdown形式で投稿します。
 
-## Setup
-
-Copy `config.yaml.example` to `config.yaml` and `secrets.yaml.example` to
-`secrets.yaml`.
-
-`config.yaml` contains feed URLs, polling intervals, and a webhook key for each
-destination. `secrets.yaml` contains only key-to-webhook-URL pairs. The key in
-`feeds[].webhook` must match a key in `secrets.yaml`. Keep `secrets.yaml` private;
-both local files and the generated `state.json` are ignored by Git.
-
-```yaml
-# config.yaml
-feeds:
-  - name: engineering
-    webhook: announcements
-    interval: 30m
-    description_limit: 10
-    urls:
-      - https://example.com/feed.xml
-```
-
-```yaml
-# secrets.yaml
-announcements: https://discord.com/api/webhooks/replace-me
-```
-
-Start with the latest stable Go release:
+## 設定と起動
 
 ```sh
+cp config.yaml.example config.yaml
+cp secrets.yaml.example secrets.yaml
 go run ./cmd/feed-subscriber
 ```
 
-The process checks each feed immediately, then repeats at its configured
-interval. New items are posted as Discord Markdown messages. The first check
-records the newest item without posting old history. `state.json` stores the
-last delivered item per feed to avoid reposting after restarts.
+- `config.yaml`: フィード、通知間隔、説明文の文字数制限、Webhookキー
+- `secrets.yaml`: WebhookキーとURLの対応のみ
+
+`feeds[].webhook`には`secrets.yaml`と同じキーを指定します。`config.yaml`、`secrets.yaml`、`state.json`はGitで追跡しません。
+
+起動時に各フィードを確認しその後は設定間隔で巡回します。初回は記事を投稿せず最新記事を記録します。最後に確認した記事を`state.json`に記録し、再起動後の重複投稿を防ぎます。
 
 ## systemd
 
-On Linux, build the binary and install the example configuration and unit:
+Linuxでsystemdサービスとして起動する場合は、バイナリと設定を配置して有効化します。
 
 ```sh
 go build -o feed-subscriber ./cmd/feed-subscriber
@@ -53,6 +31,5 @@ sudo systemctl daemon-reload
 sudo systemctl enable --now feed-subscriber.service
 ```
 
-The unit runs with a transient service user, reads the configuration and
-webhook URLs through systemd credentials, and stores delivery state under
-`/var/lib/feed-subscriber/`.
+サービスは動的ユーザーで動作し、設定とWebhook URLをsystemdの資格情報機能で読み込み、状態は`/var/lib/feed-subscriber/`に保存します。
+
