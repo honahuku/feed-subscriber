@@ -38,3 +38,20 @@ The process checks each feed immediately, then repeats at its configured
 interval. New items are posted as Discord Markdown messages. The first check
 records the newest item without posting old history. `state.json` stores the
 last delivered item per feed to avoid reposting after restarts.
+
+## systemd
+
+On Linux, build the binary and install the example configuration and unit:
+
+```sh
+go build -o feed-subscriber ./cmd/feed-subscriber
+sudo install -Dm755 feed-subscriber /usr/local/bin/feed-subscriber
+sudo install -Dm644 config.yaml /etc/feed-subscriber/config.yaml
+sudo install -Dm600 secrets.yaml /etc/feed-subscriber/secrets.yaml
+sudo install -Dm644 systemd/feed-subscriber.service /etc/systemd/system/feed-subscriber.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now feed-subscriber.service
+```
+
+The unit runs with a transient service user, reads webhook URLs through systemd
+credentials, and stores delivery state under `/var/lib/feed-subscriber/`.
