@@ -1,6 +1,6 @@
 feeds:
   - name: "ほなふくのテスト用サーバー"
-    webhook: webhook-1
+    webhook: hona-test-server
     interval: 30m
     description_limit: 10
     urls:
@@ -20,13 +20,13 @@ feeds:
       - "https://radar.cloudflare.com/zero-wire/feed"
       - "https://radar.cloudflare.com/zero-wire/feed?tag=rce"
   - name: "ほなふくのテスト用サーバー - はてなブログ"
-    webhook: webhook-1
+    webhook: hona-test-server
     interval: 1m
     description_limit: 10
     urls:
       - "https://honahuku-test.hatenablog.jp/rss"
   - name: "#p-24 - 日記"
-    webhook: webhook-2
+    webhook: p-24-diary
     interval: 15m
     description_limit: 10
     urls:
@@ -34,15 +34,16 @@ feeds:
       - "https://sizu.me/hyuyukun/rss"
       - "https://blog.honahuku.com/rss"
   - name: "#p-24 - 創作活動"
-    webhook: webhook-3
+    webhook: p-24-creative
     interval: 30m
     description_limit: 10
     urls:
       - "https://www.pixiv.net/info.php?mode=rss&cid=2"
   - name: "にゃ～ん（ほな鯖） - 日記"
-    webhook: webhook-4
+    webhook: hona-server
     interval: 30m
     description_limit: 10
     urls:
       - "https://sizu.me/honahuku/rss"
       - "https://blog.honahuku.com/rss"
+
