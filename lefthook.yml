@@ -7,3 +7,8 @@ pre-commit:
       env:
         TERM: dumb
         NO_COLOR: "true"
+
+post-merge:
+  commands:
+    redeploy-feed-subscriber:
+      run: scripts/redeploy-after-merge.sh
