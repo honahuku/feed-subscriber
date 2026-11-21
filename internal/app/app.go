@@ -7,10 +7,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
 	"sync"
 	"time"
-	"unicode/utf8"
 
 	"github.com/mmcdole/gofeed"
 )
@@ -168,22 +166,6 @@ func (application *Application) send(ctx context.Context, feed FeedConfig, item 
 	return nil
 }
 
-func formatMessage(feed FeedConfig, item Item) string {
-	title := item.Title
-	if item.Link != "" {
-		title = fmt.Sprintf("[%s](%s)", title, item.Link)
-	}
-	description := strings.TrimSpace(item.Description)
-	if feed.DescriptionLimit > 0 && utf8.RuneCountInString(description) > feed.DescriptionLimit {
-		runes := []rune(description)
-		description = string(runes[:feed.DescriptionLimit]) + "…"
-	}
-	message := title
-	if description != "" {
-		message += "\n\n" + description
-	}
-	if utf8.RuneCountInString(message) > 2000 {
-		message = string([]rune(message)[:1999]) + "…"
-	}
-	return message
+func formatMessage(_ FeedConfig, item Item) string {
+	return item.Link
 }
