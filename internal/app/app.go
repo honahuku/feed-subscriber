@@ -65,7 +65,7 @@ func (application *Application) runFeed(ctx context.Context, feed FeedConfig, er
 }
 
 func (application *Application) poll(ctx context.Context, feed FeedConfig) error {
-	for _, feedURL := range feed.URLs {
+	for urlIndex, feedURL := range feed.URLs {
 		request, err := http.NewRequestWithContext(ctx, http.MethodGet, feedURL, nil)
 		if err != nil {
 			log.Printf("feed %q: invalid RSS request", feed.Name)
@@ -78,11 +78,15 @@ func (application *Application) poll(ctx context.Context, feed FeedConfig) error
 		}
 		if response.StatusCode < 200 || response.StatusCode >= 300 {
 			log.Printf("feed %q: RSS request returned HTTP %s", feed.Name, response.Status)
-			response.Body.Close()
+			if err := response.Body.Close(); err != nil {
+				return fmt.Errorf("close RSS response: %w", err)
+			}
 			continue
 		}
 		parsed, err := application.parser.Parse(response.Body)
-		response.Body.Close()
+		if closeErr := response.Body.Close(); closeErr != nil {
+			return fmt.Errorf("close RSS response: %w", closeErr)
+		}
 		if err != nil {
 			log.Printf("feed %q: unable to parse RSS", feed.Name)
 			continue
@@ -101,7 +105,7 @@ func (application *Application) poll(ctx context.Context, feed FeedConfig) error
 				Description: parsedItem.Description,
 			})
 		}
-		key := feed.Name + "\n" + feedURL
+		key := feed.Name + "\n" + feed.StateURLs[urlIndex]
 		application.stateMu.Lock()
 		lastID := application.state[key]
 		application.stateMu.Unlock()
@@ -153,7 +157,9 @@ func (application *Application) send(ctx context.Context, feed FeedConfig, item 
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
+	if err := response.Body.Close(); err != nil {
+		return fmt.Errorf("close webhook response: %w", err)
+	}
 	if response.StatusCode < 200 || response.StatusCode >= 300 {
 		return fmt.Errorf("webhook returned HTTP %s", response.Status)
 	}

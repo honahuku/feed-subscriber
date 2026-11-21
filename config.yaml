@@ -1,0 +1,48 @@
+feeds:
+  - name: "ほなふくのテスト用サーバー"
+    webhook: webhook-1
+    interval: 30m
+    description_limit: 10
+    urls:
+      - "https://mirai-report.com/?xml"
+      - "https://gihyo.jp/feed/rss2"
+      - "https://blog.hatena.ne.jp/-/antenna/Honahuku/feed?token=${secret:hatena_antenna_token}"
+      - "https://www.mend.io/blog/category/dependency-management/feed"
+      - "https://rsshub.umzzz.com/pixiv/user/novels/10536791"
+      - "https://dicomo.org/feed"
+      - "https://coord-e.com/post/rss.xml"
+      - "https://www.kubernetes.dev/blog/index.xml"
+      - "https://efcl.info/feed/"
+      - "https://docs.cloud.google.com/feeds/gke-new-features-release-notes.xml"
+      - "https://docs.cloud.google.com/feeds/gke-security-bulletins.xml"
+      - "https://yskntr.tumblr.com/rss"
+      - "https://www.0x0c.me/feed.xml"
+      - "https://radar.cloudflare.com/zero-wire/feed"
+      - "https://radar.cloudflare.com/zero-wire/feed?tag=rce"
+  - name: "ほなふくのテスト用サーバー - はてなブログ"
+    webhook: webhook-1
+    interval: 1m
+    description_limit: 10
+    urls:
+      - "https://honahuku-test.hatenablog.jp/rss"
+  - name: "#p-24 - 日記"
+    webhook: webhook-2
+    interval: 15m
+    description_limit: 10
+    urls:
+      - "https://sizu.me/honahuku/rss"
+      - "https://sizu.me/hyuyukun/rss"
+      - "https://blog.honahuku.com/rss"
+  - name: "#p-24 - 創作活動"
+    webhook: webhook-3
+    interval: 30m
+    description_limit: 10
+    urls:
+      - "https://www.pixiv.net/info.php?mode=rss&cid=2"
+  - name: "にゃ～ん（ほな鯖） - 日記"
+    webhook: webhook-4
+    interval: 30m
+    description_limit: 10
+    urls:
+      - "https://sizu.me/honahuku/rss"
+      - "https://blog.honahuku.com/rss"

@@ -1,13 +1,13 @@
 feeds:
   - name: engineering
-    webhook: announcements
+    webhook: webhook-1
     interval: 30m
     description_limit: 10
     urls:
-      - https://example.com/feed.xml
+      - https://example.com/feed.xml?token=${secret:hatena_antenna_token}
 
   - name: personal
-    webhook: journal
+    webhook: webhook-2
     interval: 10m
     description_limit: 10
     urls:
