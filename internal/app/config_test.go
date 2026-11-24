@@ -12,7 +12,8 @@ func TestLoadConfigResolvesWebhookKeyFromSeparateSecrets(t *testing.T) {
 	configPath := filepath.Join(directory, "config.yaml")
 	secretsPath := filepath.Join(directory, "secrets.yaml")
 
-	config := `feeds:
+	config := `error_webhook: updates
+feeds:
   - name: engineering
     webhook: updates
     interval: 30m
@@ -35,6 +36,9 @@ func TestLoadConfigResolvesWebhookKeyFromSeparateSecrets(t *testing.T) {
 	if len(got.Feeds) != 1 {
 		t.Fatalf("len(Feeds) = %d, want 1", len(got.Feeds))
 	}
+	if got.ErrorWebhookURL != "https://discord.com/api/webhooks/example/token" {
+		t.Errorf("ErrorWebhookURL = %q, want resolved URL", got.ErrorWebhookURL)
+	}
 	feed := got.Feeds[0]
 	if feed.WebhookURL != "https://discord.com/api/webhooks/example/token" {
 		t.Errorf("WebhookURL = %q, want resolved URL", feed.WebhookURL)
@@ -55,7 +59,8 @@ func TestLoadConfigRejectsMissingURLSecret(t *testing.T) {
 	configPath := filepath.Join(directory, "config.yaml")
 	secretsPath := filepath.Join(directory, "secrets.yaml")
 
-	if err := os.WriteFile(configPath, []byte(`feeds:
+	if err := os.WriteFile(configPath, []byte(`error_webhook: updates
+feeds:
   - name: engineering
     webhook: updates
     interval: 30m
@@ -102,7 +107,8 @@ func TestLoadConfigRejectsMissingWebhookKey(t *testing.T) {
 	configPath := filepath.Join(directory, "config.yaml")
 	secretsPath := filepath.Join(directory, "secrets.yaml")
 
-	if err := os.WriteFile(configPath, []byte(`feeds:
+	if err := os.WriteFile(configPath, []byte(`error_webhook: updates
+feeds:
   - name: engineering
     webhook: updates
     interval: 30m
@@ -116,5 +122,28 @@ func TestLoadConfigRejectsMissingWebhookKey(t *testing.T) {
 
 	if _, err := LoadConfig(configPath, secretsPath); err == nil {
 		t.Fatal("LoadConfig() error = nil, want missing webhook error")
+	}
+}
+
+func TestLoadConfigRejectsMissingErrorWebhookKey(t *testing.T) {
+	directory := t.TempDir()
+	configPath := filepath.Join(directory, "config.yaml")
+	secretsPath := filepath.Join(directory, "secrets.yaml")
+
+	if err := os.WriteFile(configPath, []byte(`error_webhook: errors
+feeds:
+  - name: engineering
+    webhook: updates
+    interval: 30m
+    urls: [https://example.com/feed.xml]
+`), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(secretsPath, []byte("updates: https://example.com/webhook\n"), 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := LoadConfig(configPath, secretsPath); err == nil {
+		t.Fatal("LoadConfig() error = nil, want missing error webhook error")
 	}
 }

@@ -37,6 +37,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	failureState, err := app.LoadFailureState(*statePath + ".failures.json")
+	if err != nil {
+		log.Fatal(err)
+	}
 	if config.MigrateState(state) {
 		if err := state.Save(*statePath); err != nil {
 			log.Fatal(err)
@@ -45,7 +49,7 @@ func main() {
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
-	if err := app.New(config, state, *statePath).Run(ctx); err != nil {
+	if err := app.NewWithFailureState(config, state, failureState, *statePath).Run(ctx); err != nil {
 		log.Fatal(err)
 	}
 }

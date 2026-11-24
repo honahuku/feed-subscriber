@@ -1,3 +1,5 @@
+error_webhook: hona-test-server
+
 feeds:
   - name: "ほなふくのテスト用サーバー"
     webhook: hona-test-server

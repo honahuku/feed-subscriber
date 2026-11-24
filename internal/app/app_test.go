@@ -6,8 +6,10 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestFormatMessageContainsOnlyArticleURL(t *testing.T) {
@@ -42,7 +44,7 @@ func TestPollLogsWebhookAndRSSURLOnHTTPError(t *testing.T) {
 		URLs:      []string{server.URL + "/feed?token=private-token"},
 		StateURLs: []string{"https://feeds.example.org/rss?token=${secret:feed_token}"},
 	}
-	application := New(Config{}, State{}, "")
+	application := New(Config{}, State{}, filepath.Join(t.TempDir(), "state.json"))
 	if err := application.poll(context.Background(), feed); err != nil {
 		t.Fatalf("poll() error = %v, want nil", err)
 	}
@@ -60,5 +62,76 @@ func TestPollLogsWebhookAndRSSURLOnHTTPError(t *testing.T) {
 	}
 	if strings.Contains(got, "private-token") {
 		t.Errorf("poll() log contains the resolved URL secret: %q", got)
+	}
+}
+
+func TestSendFailureAlertSendsAtDueTimeAndStopsAfterFourAlerts(t *testing.T) {
+	var requests int
+	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		requests++
+		writer.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+
+	now := time.Now()
+	failure := Failure{
+		FirstFailedAt:       now.Add(-firstFailureAlertDelay),
+		NextAlertAt:         now,
+		ConsecutiveFailures: 10,
+		LastError:           "HTTP 503",
+	}
+	application := NewWithFailureState(
+		Config{ErrorWebhookURL: server.URL},
+		State{},
+		FailureState{"https://example.com/feed.xml": failure},
+		filepath.Join(t.TempDir(), "state.json"),
+	)
+	feed := FeedConfig{Name: "test"}
+
+	for attempt := range maximumFailureAlerts + 1 {
+		alertAt := now.Add(time.Duration(attempt) * failureAlertInterval)
+		if err := application.sendFailureAlert("https://example.com/feed.xml", "https://example.com/feed.xml", feed, alertAt); err != nil {
+			t.Fatalf("sendFailureAlert() error = %v", err)
+		}
+	}
+
+	if requests != maximumFailureAlerts {
+		t.Errorf("webhook requests = %d, want %d", requests, maximumFailureAlerts)
+	}
+	got, _ := application.getFailure("https://example.com/feed.xml")
+	if got.AlertCount != maximumFailureAlerts {
+		t.Errorf("AlertCount = %d, want %d", got.AlertCount, maximumFailureAlerts)
+	}
+}
+
+func TestPollClearsFailureAfterSuccessfulParse(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, _ *http.Request) {
+		writer.Header().Set("Content-Type", "application/rss+xml")
+		_, _ = writer.Write([]byte(`<?xml version="1.0"?><rss version="2.0"><channel><title>test</title><link>https://example.com</link><description>test</description></channel></rss>`))
+	}))
+	defer server.Close()
+
+	stateURL := "https://example.com/feed.xml"
+	application := NewWithFailureState(
+		Config{},
+		State{},
+		FailureState{stateURL: {
+			FirstFailedAt:       time.Now().Add(-time.Hour),
+			NextRetryAt:         time.Now().Add(-time.Minute),
+			ConsecutiveFailures: 3,
+			LastError:           "HTTP 503",
+		}},
+		filepath.Join(t.TempDir(), "state.json"),
+	)
+	feed := FeedConfig{
+		Name: "test", Interval: time.Minute,
+		URLs:      []string{server.URL},
+		StateURLs: []string{stateURL},
+	}
+	if err := application.poll(context.Background(), feed); err != nil {
+		t.Fatalf("poll() error = %v", err)
+	}
+	if _, exists := application.getFailure(stateURL); exists {
+		t.Error("failure state remains after successful RSS parse")
 	}
 }
