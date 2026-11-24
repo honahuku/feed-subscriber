@@ -28,6 +28,7 @@ feeds:
       - "https://sizu.me/honahuku/rss"
       - "https://sizu.me/hyuyukun/rss"
       - "https://blog.honahuku.com/rss"
+      - "http://localhost:41873/feed.xml"
   - name: "#p-24 - 創作活動"
     webhook: p-24-creative
     interval: 30m
@@ -41,4 +42,4 @@ feeds:
     urls:
       - "https://sizu.me/honahuku/rss"
       - "https://blog.honahuku.com/rss"
-
+      - "http://localhost:41873/feed.xml"
