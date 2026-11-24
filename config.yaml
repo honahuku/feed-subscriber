@@ -7,6 +7,7 @@ feeds:
       - "https://mirai-report.com/?xml"
       - "https://gihyo.jp/feed/rss2"
       - "https://blog.hatena.ne.jp/-/antenna/Honahuku/feed?token=${secret:hatena_antenna_token}"
+      - "https://b.hatena.ne.jp/q/%E6%97%A5%E8%A8%98?mode=rss&users=5"
       - "https://www.mend.io/blog/category/dependency-management/feed"
       - "https://rsshub.umzzz.com/pixiv/user/novels/10536791"
       - "https://dicomo.org/feed"
