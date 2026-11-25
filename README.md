@@ -12,9 +12,9 @@ go run ./cmd/feed-subscriber
 - `config.yaml`: Gitで管理するフィード、通知間隔、説明文の文字数制限、Webhookキー、秘密情報の参照
 - `secrets.yaml`: Gitで管理しないWebhook URLとフィードURL用の秘密情報
 
-`feeds[].webhook`には`secrets.yaml`と同じキーを指定します。フィードURL内の`${secret:<キー>}`は`secrets.yaml`の値に置換されます。状態ファイルには秘密情報を含むURLではなく、参照を含むURLが保存されます。既存の状態に秘密情報を含むURLがあれば、起動時にチェックポイントを保ったまま参照形式へ移行します。`secrets.yaml`と`state.json`はGitで追跡しません。
+`error_webhook`と`feeds[].webhook`には`secrets.yaml`のキーを指定します。`error_webhook`はRSSソースの長期障害通知先です。フィードURL内の`${secret:<キー>}`は`secrets.yaml`の値に置換されます。状態ファイルには秘密情報を含むURLではなく、参照を含むURLが保存されます。既存の状態に秘密情報を含むURLがあれば、起動時にチェックポイントを保ったまま参照形式へ移行します。`secrets.yaml`、`state.json`、`state.json.failures.json`はGitで追跡しません。
 
-起動時に各フィードを確認しその後は設定間隔で巡回します。初回は記事を投稿せず最新記事を記録します。最後に確認した記事を`state.json`に記録し、再起動後の重複投稿を防ぎます。
+起動時に各フィードを確認し、その後は設定間隔で巡回します。初回は記事を投稿せず最新記事を記録します。最後に確認した記事を`state.json`に記録し、再起動後の重複投稿を防ぎます。RSS取得・解析に失敗したURLは設定間隔から最大24時間までバックオフし、HTTP 2xxかつ解析成功で通常の間隔へ戻ります。障害が3日続くと`error_webhook`へ通知し、その後3日おきに最大3回追加通知します。障害状態は`state.json.failures.json`に保存します。
 
 `feed-subscriber -version`で実行中バイナリのバージョンを確認できます。バージョンはUTCの年月日時分秒とミリ秒で、pre-commit時に自動更新されます。同じ時刻または時計が戻った場合は、直前のバージョンより1ミリ秒進めます。
 

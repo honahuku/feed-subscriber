@@ -30,6 +30,7 @@ go.work.sum
 .env
 secrets.yaml
 state.json
+state.json.failures.json
 
 # Editor/IDE
 # .idea/
