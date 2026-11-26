@@ -10,7 +10,9 @@ import (
 )
 
 type Config struct {
-	Feeds []FeedConfig `yaml:"feeds"`
+	Feeds           []FeedConfig `yaml:"feeds"`
+	ErrorWebhook    string       `yaml:"error_webhook"`
+	ErrorWebhookURL string       `yaml:"-"`
 }
 
 type FeedConfig struct {
@@ -37,6 +39,10 @@ func LoadConfig(configPath, secretsPath string) (Config, error) {
 	if len(config.Feeds) == 0 {
 		return Config{}, fmt.Errorf("config must contain at least one feed")
 	}
+	if config.ErrorWebhook == "" || secrets[config.ErrorWebhook] == "" {
+		return Config{}, fmt.Errorf("config references missing error webhook key %q", config.ErrorWebhook)
+	}
+	config.ErrorWebhookURL = secrets[config.ErrorWebhook]
 
 	names := make(map[string]bool)
 	for i := range config.Feeds {
