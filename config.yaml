@@ -16,8 +16,6 @@ feeds:
       - "https://coord-e.com/post/rss.xml"
       - "https://www.kubernetes.dev/blog/index.xml"
       - "https://efcl.info/feed/"
-      - "https://docs.cloud.google.com/feeds/gke-new-features-release-notes.xml"
-      - "https://docs.cloud.google.com/feeds/gke-security-bulletins.xml"
       - "https://yskntr.tumblr.com/rss"
       - "https://www.0x0c.me/feed.xml"
       - "https://radar.cloudflare.com/zero-wire/feed?tag=rce"
