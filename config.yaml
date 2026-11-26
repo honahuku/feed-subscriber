@@ -20,6 +20,7 @@ feeds:
       - "https://www.0x0c.me/feed.xml"
       - "https://radar.cloudflare.com/zero-wire/feed"
       - "https://radar.cloudflare.com/zero-wire/feed?tag=rce"
+      - "https://urjkk-navi.com/feed.xml"
   - name: "#p-24 - 日記"
     webhook: p-24-diary
     interval: 15m
